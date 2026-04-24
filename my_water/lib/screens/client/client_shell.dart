@@ -17,6 +17,8 @@ class ClientShell extends StatefulWidget {
 class _ClientShellState extends State<ClientShell> {
   int _currentIndex = 0;
 
+  static const _titles = ['Home', 'Usage', 'Bills', 'Payments'];
+
   @override
   Widget build(BuildContext context) {
     final user = context.read<AuthProvider>().user;
@@ -29,58 +31,184 @@ class _ClientShellState extends State<ClientShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('WaterBill'),
+        title: Text(_titles[_currentIndex]),
+        centerTitle: false,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 10),
             child: PopupMenuButton<String>(
-              offset: const Offset(0, 46),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              offset: const Offset(0, 48),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+              elevation: 4,
               child: CircleAvatar(
-                backgroundColor: Colors.white.withOpacity(0.2),
+                radius: 18,
+                backgroundColor: Colors.white.withOpacity(0.25),
                 child: Text(
                   user.name.substring(0, 1).toUpperCase(),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                  ),
                 ),
               ),
               itemBuilder: (_) => [
                 PopupMenuItem(
                   enabled: false,
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(user.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    Text(user.email, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                    if (user.meterNumber != null)
-                      Text('Meter: ${user.meterNumber}', style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
-                  ]),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(user.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary)),
+                      Text(user.email,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary)),
+                      if (user.meterNumber != null) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.infoLight,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text('Meter: ${user.meterNumber}',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
                   value: 'logout',
-                  child: const Row(children: [
-                    Icon(Icons.logout, size: 18, color: AppColors.error),
-                    SizedBox(width: 8),
-                    Text('Logout', style: TextStyle(color: AppColors.error)),
-                  ]),
                   onTap: () => context.read<AuthProvider>().logout(),
+                  child: const Row(children: [
+                    Icon(Icons.logout_rounded,
+                        size: 18, color: AppColors.error),
+                    SizedBox(width: 10),
+                    Text('Sign Out',
+                        style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.w600)),
+                  ]),
                 ),
               ],
             ),
           ),
         ],
       ),
-      body: screens[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (i) => setState(() => _currentIndex = i),
-        backgroundColor: Colors.white,
-        indicatorColor: AppColors.primaryLight.withOpacity(0.2),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Usage'),
-          NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Bills'),
-          NavigationDestination(icon: Icon(Icons.payment_outlined), selectedIcon: Icon(Icons.payment), label: 'Payments'),
-        ],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 220),
+        transitionBuilder: (child, anim) =>
+            FadeTransition(opacity: anim, child: child),
+        child: KeyedSubtree(
+          key: ValueKey(_currentIndex),
+          child: screens[_currentIndex],
+        ),
+      ),
+      bottomNavigationBar: _BottomNav(
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
       ),
     );
   }
+}
+
+class _BottomNav extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  const _BottomNav({required this.currentIndex, required this.onTap});
+
+  static const _items = [
+    _NavItem(Icons.home_outlined, Icons.home_rounded, 'Home'),
+    _NavItem(Icons.bar_chart_outlined, Icons.bar_chart_rounded, 'Usage'),
+    _NavItem(Icons.receipt_long_outlined, Icons.receipt_long_rounded, 'Bills'),
+    _NavItem(Icons.payment_outlined, Icons.payment_rounded, 'Payments'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            children: _items.asMap().entries.map((e) {
+              final i = e.key;
+              final item = e.value;
+              final selected = currentIndex == i;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => onTap(i),
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.primary.withOpacity(0.08)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          selected ? item.selectedIcon : item.icon,
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.textHint,
+                          size: 24,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textHint,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  const _NavItem(this.icon, this.selectedIcon, this.label);
 }

@@ -20,9 +20,16 @@ dependencies:
   # Secure storage for JWT
   flutter_secure_storage: ^9.0.0
 
-  # UI
+  # QR / Barcode scanning & generation
+  mobile_scanner: ^5.2.3
+  qr_flutter: ^4.1.0
+
+  # UI & Animations
   google_fonts: ^6.1.0
   fl_chart: ^0.66.2
+  flutter_animate: ^4.5.0
+  shimmer: ^3.0.0
+  percent_indicator: ^4.2.3
 
   # Utils
   intl: ^0.19.0

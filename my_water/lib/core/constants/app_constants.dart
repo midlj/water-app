@@ -3,7 +3,7 @@ class AppConstants {
 
   static const String appName = 'WaterBill';
   // localhost for Windows desktop / web; use 10.0.2.2 for Android emulator
-  static const String baseUrl = 'http://localhost:5000/api';
+  static const String baseUrl = 'http://localhost:5001/api';
 
   // Storage keys
   static const String tokenKey = 'auth_token';
